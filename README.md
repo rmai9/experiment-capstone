@@ -23,7 +23,7 @@ List main objectives, problems you aim to solve.
 
 ### Software Stack / Technologies Used
 
-- Language: ...
+- Language: python, 
 - Framework: ...
 - Database: ...
 - etc...
@@ -40,6 +40,21 @@ Summary for developers with links to setup, build, test instructions in wiki or 
 4. Create an initial branch (e.g., `setup`), never commit directly to `main` (unless instructed).
 5. Open an Issue for each lab / feature before starting work.
 6. Use Pull Requests to merge changes (each PR should reference at least one Issue).
+
+
+
+# Commands windows
+`python -m venv venv`
+`venv/scripts/activate`
+`pip install -r requirements.txt`
+`python main.py`
+
+# Max os
+`python3 -m venv venv`
+`source venv/bin/activate`
+`pip install -r requirements.txt`
+`python main.py`
+
 
 ## Structure
 
