@@ -63,3 +63,11 @@ wandb/
 mlruns/
 lightning_logs/
 tensorboard/
+
+# Generated extractor output
+data/frames/*
+artifacts/manifests/*
+
+# Preserve empty directories after clone
+!data/frames/.gitkeep
+!artifacts/manifests/.gitkeep
