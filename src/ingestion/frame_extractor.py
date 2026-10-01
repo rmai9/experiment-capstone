@@ -3,18 +3,23 @@ import time
 import warnings
 from pathlib import Path
 
+import json
+from datetime import datetime, timezone
+from uuid import uuid4
+
 import cv2
 import gradio as gr
 import gradio.routes
 from gradio.route_utils import move_uploaded_files_to_cache as _move_to_cache
 
-FRAMES_DIR = Path(__file__).parents[2] / "data" / "frames"
-
+PROJECT_ROOT = Path(__file__).parents[2]
+FRAMES_DIR = PROJECT_ROOT / "data" / "frames"
+MANIFESTS_DIR = PROJECT_ROOT / "artifacts" / "manifests"
 
 def ensure_dirs():
 	"""Create the data/frames folder if it's missing (e.g. on a fresh clone)."""
 	FRAMES_DIR.mkdir(parents=True, exist_ok=True)
-
+	MANIFESTS_DIR.mkdir(parents=True, exist_ok=True)
 
 ensure_dirs()
 
@@ -52,6 +57,20 @@ def _save_frame(path, frame):
 	except OSError as e:
 		raise gr.Error(f"Could not write {path}: {e}") from e
 
+def _write_manifest(run_id: str, manifest: dict) -> Path:
+    """Write extraction metadata to artifacts/manifests/<run_id>.json."""
+    manifest_path = MANIFESTS_DIR / f"{run_id}.json"
+
+    try:
+        manifest_path.write_text(
+            json.dumps(manifest, indent=2),
+            encoding="utf-8",
+        )
+    except OSError as exc:
+        raise gr.Error(f"Could not write extraction manifest: {exc}") from exc
+
+    return manifest_path
+
 def _validate_every_n(every_n) -> int:
     """Validate and normalize the frame-sampling interval."""
     try:
@@ -80,32 +99,44 @@ def analyze(video_path, every_n, progress=gr.Progress()):
 		raise gr.Error("Could not open the video.")
 	try:
 		video = Path(video_path)
-		out_dir = FRAMES_DIR / f"{video.stem}_{video.parent.name[:8]}"
-		out_dir.mkdir(parents=True, exist_ok=True)
-		for old in out_dir.glob("frame_*.jpg"):
-			try:
-				old.unlink()
-			except PermissionError as e:
-				raise gr.Error(
-					f"Could not delete {old}. Close any program using it and try again."
-				) from e
+		print(f"Gradio input path: {video}")
+		print(f"Gradio input size: {video.stat().st_size:,} bytes")
+		run_id = uuid4().hex[:12]
+		out_dir = FRAMES_DIR / run_id
+		out_dir.mkdir(parents=True, exist_ok=False)
 
 		total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+		fps = cap.get(cv2.CAP_PROP_FPS)
 		if total <= 0:
 			total = None
 		every_n = _validate_every_n(every_n)
 
 		index = saved = 0
 		position = 0.0
+		frames = []
 		last_update = time.monotonic()
-		while cap.grab():
+		while True:
+			ok, frame = cap.read()
+
+			if not ok:
+				break
+
 			position = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000
+
 			if index % every_n == 0:
-				ok, frame = cap.retrieve()
-				if not ok:
-					break
-				_save_frame(out_dir / f"frame_{index:06d}.jpg", frame)
+				filename = f"frame_{index:06d}.jpg"
+				_save_frame(out_dir / filename, frame)
+
+				frames.append(
+					{
+						"frame_index": index,
+						"timestamp_seconds": round(position, 3),
+						"filename": filename,
+					}
+				)
+
 				saved += 1
+
 			index += 1
 			if index % 30 == 0:
 				done = min(index, total) if total else index
@@ -116,7 +147,26 @@ def analyze(video_path, every_n, progress=gr.Progress()):
 	finally:
 		cap.release()
 
-	status = f"Saved {saved} of {index} frames to {out_dir}"
+	manifest = {
+    	"run_id": run_id,
+    	"source_filename": video.name,
+    	"created_at": datetime.now(timezone.utc).isoformat(),
+    	"every_n_frames": every_n,
+    	"fps": fps,
+    	"reported_total_frames": total,
+    	"frames_read": index,
+    	"frames_saved": saved,
+    	"output_directory": str(out_dir.relative_to(PROJECT_ROOT)),
+    	"frames": frames,
+	}
+
+	manifest_path = _write_manifest(run_id, manifest)
+
+	status = (
+    	f"Run {run_id}: saved {saved} of {index} frames to "
+    	f"{out_dir.relative_to(PROJECT_ROOT)}. "
+    	f"Manifest: {manifest_path.relative_to(PROJECT_ROOT)}"
+	)
 	if total and index < total * 0.99:
 		status += (
 			f". Warning: the video says it has {total} frames, so it may be"

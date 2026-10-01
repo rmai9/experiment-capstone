@@ -5,7 +5,7 @@ from src.ingestion.frame_extractor import analyze
 
 with gr.Blocks(title="Frame Extractor") as demo:
 	gr.Markdown("# Frame Extractor")
-	video = gr.Video(label="Video", sources=["upload"], elem_id="input-video")
+	video = gr.Video(label="Video", sources=["upload"], format=None, elem_id="input-video",)
 	every_n = gr.Slider(1, 60, value=1, step=1, label="Save every Nth frame (1 = every frame)")
 	analyze_btn = gr.Button("Analyze", variant="primary")
 	status = gr.Textbox(label="Status", interactive=False)
