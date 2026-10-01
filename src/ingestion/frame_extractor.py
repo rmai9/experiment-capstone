@@ -52,6 +52,17 @@ def _save_frame(path, frame):
 	except OSError as e:
 		raise gr.Error(f"Could not write {path}: {e}") from e
 
+def _validate_every_n(every_n) -> int:
+    """Validate and normalize the frame-sampling interval."""
+    try:
+        every_n = int(every_n)
+    except (TypeError, ValueError) as exc:
+        raise gr.Error("Save every Nth frame must be a whole number.") from exc
+
+    if every_n < 1:
+        raise gr.Error("Save every Nth frame must be at least 1.")
+
+    return every_n
 
 def analyze(video_path, every_n, progress=gr.Progress()):
 	"""Extract frames from a video into data/frames/<video name>_<id>/.
@@ -60,6 +71,9 @@ def analyze(video_path, every_n, progress=gr.Progress()):
 	"""
 	if not video_path:
 		raise gr.Error("Upload a video first.")
+
+	if not Path(video_path).is_file():
+		raise gr.Error("The uploaded video file could not be found.")
 
 	cap = cv2.VideoCapture(video_path)
 	if not cap.isOpened():
@@ -79,7 +93,7 @@ def analyze(video_path, every_n, progress=gr.Progress()):
 		total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 		if total <= 0:
 			total = None
-		every_n = int(every_n)
+		every_n = _validate_every_n(every_n)
 
 		index = saved = 0
 		position = 0.0
