@@ -2,3 +2,4 @@ torch==2.11.0
 torchvision==0.26.0
 gradio==6.27.0
 opencv-python==5.0.0.93
+git+https://github.com/facebookresearch/sam2.git

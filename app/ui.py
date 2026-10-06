@@ -3,10 +3,16 @@ import gradio as gr
 from src.ingestion.frame_extractor import analyze
 
 
-with gr.Blocks(title="Frame Extractor") as demo:
-	gr.Markdown("# Frame Extractor")
+with gr.Blocks(title="Railway Coverboard Segmentation") as demo:
+	gr.Markdown("# Railway Coverboard Segmentation")
 	video = gr.Video(label="Video", sources=["upload"], format=None, elem_id="input-video",)
 	every_n = gr.Slider(1, 60, value=1, step=1, label="Save every Nth frame (1 = every frame)")
+	gr.Markdown("Coverboard box on the first frame, normalized from 0 to 1")
+	with gr.Row():
+		x1 = gr.Number(label="Left", minimum=0, maximum=1)
+		y1 = gr.Number(label="Top", minimum=0, maximum=1)
+		x2 = gr.Number(label="Right", minimum=0, maximum=1)
+		y2 = gr.Number(label="Bottom", minimum=0, maximum=1)
 	analyze_btn = gr.Button("Analyze", variant="primary")
 	status = gr.Textbox(label="Status", interactive=False)
 	position = gr.Number(visible="hidden")
@@ -20,7 +26,11 @@ with gr.Blocks(title="Frame Extractor") as demo:
 			window.frameSync = {};
 		}""",
 	)
-	analyze_btn.click(analyze, inputs=[video, every_n], outputs=[status, position]).then(
+	analyze_btn.click(
+		analyze,
+		inputs=[video, every_n, x1, y1, x2, y2],
+		outputs=[status, position],
+	).then(
 		None,
 		inputs=position,
 		js="""(t) => {

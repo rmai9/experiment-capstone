@@ -12,6 +12,8 @@ import gradio as gr
 import gradio.routes
 from gradio.route_utils import move_uploaded_files_to_cache as _move_to_cache
 
+from src.segmentation.sam2_segmenter import segment_frames
+
 PROJECT_ROOT = Path(__file__).parents[2]
 FRAMES_DIR = PROJECT_ROOT / "data" / "frames"
 MANIFESTS_DIR = PROJECT_ROOT / "artifacts" / "manifests"
@@ -83,7 +85,7 @@ def _validate_every_n(every_n) -> int:
 
     return every_n
 
-def analyze(video_path, every_n, progress=gr.Progress()):
+def analyze(video_path, every_n, x1, y1, x2, y2, progress=gr.Progress()):
 	"""Extract frames from a video into data/frames/<video name>_<id>/.
 
 	Yields status and timestamp pairs while extraction is running.
@@ -162,8 +164,22 @@ def analyze(video_path, every_n, progress=gr.Progress()):
 
 	manifest_path = _write_manifest(run_id, manifest)
 
+	segmented_dir = PROJECT_ROOT / "data" / "segmented" / run_id
+	try:
+		segmentation = segment_frames(
+			frames_dir=out_dir,
+			output_dir=segmented_dir,
+			box=(x1, y1, x2, y2),
+		)
+	except (OSError, ValueError, RuntimeError) as exc:
+		raise gr.Error(str(exc)) from exc
+	segmentation["output_directory"] = str(segmented_dir.relative_to(PROJECT_ROOT))
+	manifest["segmentation"] = segmentation
+	manifest_path = _write_manifest(run_id, manifest)
+
 	status = (
-    	f"Run {run_id}: saved {saved} of {index} frames to "
+	    	f"Run {run_id}: saved {segmentation['images_saved']} segmented images from "
+	    	f"{saved} extracted frames to "
     	f"{out_dir.relative_to(PROJECT_ROOT)}. "
     	f"Manifest: {manifest_path.relative_to(PROJECT_ROOT)}"
 	)

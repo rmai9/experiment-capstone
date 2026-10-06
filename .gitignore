@@ -41,6 +41,9 @@ data/raw_frames/*
 data/processed_frames/*
 !data/processed_frames/.gitkeep
 
+data/segmented/*
+!data/segmented/.gitkeep
+
 data/annotations/*
 !data/annotations/.gitkeep
 
