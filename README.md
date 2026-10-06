@@ -34,8 +34,8 @@ Download the matching official checkpoint:
 
 <https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt>
 
-Store it locally at `artifacts/models/sam2.1_hiera_large.pt`. The `artifacts/`
-directory is ignored by Git.
+Store it locally at `models/sam2.1_hiera_large.pt`. The `models/` directory is
+ignored by Git.
 
 ## Setup and run
 
@@ -43,12 +43,12 @@ directory is ignored by Git.
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-mkdir -p artifacts/models
+mkdir -p models
 curl -L \
-	-o artifacts/models/sam2.1_hiera_large.pt \
+	-o models/sam2.1_hiera_large.pt \
 	https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt
 
-export SAM2_CHECKPOINT="$PWD/artifacts/models/sam2.1_hiera_large.pt"
+export SAM2_CHECKPOINT="$PWD/models/sam2.1_hiera_large.pt"
 export SAM2_CONFIG="configs/sam2.1/sam2.1_hiera_l.yaml"
 export SAM2_DEVICE="mps"
 venv/bin/python main.py
@@ -86,7 +86,7 @@ manifest rather than repaired automatically.
 Each run receives a short ID:
 
 ```text
-data/frames/<run_id>/frame_000000.jpg
+data/frames/<run_id>/000000.jpg
 data/segmented/<run_id>/frame_000000.png
 artifacts/manifests/<run_id>.json
 ```

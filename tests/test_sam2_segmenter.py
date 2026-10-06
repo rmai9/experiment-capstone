@@ -6,12 +6,17 @@ import cv2
 import numpy as np
 
 from src.segmentation.sam2_segmenter import (
+	_frame_number,
 	_normalize_box,
 	_save_masked_image,
 )
 
 
 class Sam2SegmenterTests(unittest.TestCase):
+	def test_frame_number_accepts_sam2_and_legacy_names(self):
+		self.assertEqual(_frame_number(Path("000030.jpg")), 30)
+		self.assertEqual(_frame_number(Path("frame_000030.jpg")), 30)
+
 	def test_normalize_box_rejects_invalid_coordinates(self):
 		with self.assertRaises(ValueError):
 			_normalize_box((0.5, 0.2, 0.4, 0.8))

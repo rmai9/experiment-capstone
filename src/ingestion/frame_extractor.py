@@ -126,7 +126,7 @@ def extract_frames(video_path, every_n, progress=gr.Progress()):
 			position = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000
 
 			if index % every_n == 0:
-				filename = f"frame_{index:06d}.jpg"
+				filename = f"{index:06d}.jpg"
 				_save_frame(out_dir / filename, frame)
 
 				frames.append(

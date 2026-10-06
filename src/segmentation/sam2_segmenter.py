@@ -6,9 +6,14 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+PROJECT_ROOT = Path(__file__).parents[2]
+
 
 def _settings() -> tuple[str, str, str]:
-	checkpoint = os.environ.get("SAM2_CHECKPOINT", "")
+	checkpoint = os.environ.get(
+		"SAM2_CHECKPOINT",
+		str(PROJECT_ROOT / "models" / "sam2.1_hiera_large.pt"),
+	)
 	model_config = os.environ.get(
 		"SAM2_CONFIG", "configs/sam2.1/sam2.1_hiera_l.yaml"
 	)
@@ -57,11 +62,15 @@ def _save_masked_image(source: Path, destination: Path, mask: np.ndarray) -> Non
 		raise OSError(f"Could not write segmented image: {destination}")
 
 
+def _frame_number(path: Path) -> int:
+	return int(path.stem.removeprefix("frame_"))
+
+
 def segment_frames(frames_dir: Path, output_dir: Path, box) -> dict:
 	"""Propagate a first-frame box through extracted frames and save masked PNGs."""
 	model_config, checkpoint, device = _settings()
 	normalized_box = _normalize_box(box)
-	frame_paths = sorted(frames_dir.glob("frame_*.jpg"))
+	frame_paths = sorted(frames_dir.glob("*.jpg"), key=_frame_number)
 	if not frame_paths:
 		raise ValueError(f"No extracted frames found in {frames_dir}")
 
@@ -100,7 +109,7 @@ def segment_frames(frames_dir: Path, output_dir: Path, box) -> dict:
 	failed_frames = []
 	for frame_index, object_ids, mask_logits in predictor.propagate_in_video(state):
 		source_path = frame_paths[frame_index]
-		source_frame_index = int(source_path.stem.removeprefix("frame_"))
+		source_frame_index = _frame_number(source_path)
 		mask_index = list(object_ids).index(1) if 1 in object_ids else None
 		if mask_index is None:
 			failed_frames.append(source_frame_index)
@@ -113,7 +122,7 @@ def segment_frames(frames_dir: Path, output_dir: Path, box) -> dict:
 			continue
 		_save_masked_image(
 			source_path,
-			output_dir / f"{source_path.stem}.png",
+			output_dir / f"frame_{source_frame_index:06d}.png",
 			mask,
 		)
 		saved += 1

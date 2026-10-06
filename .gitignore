@@ -37,6 +37,7 @@ data/segmented/*
 # Model artifacts and derived private outputs
 artifacts/*
 !artifacts/.gitkeep
+models/
 
 # Common ML experiment outputs
 runs/
