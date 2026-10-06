@@ -31,30 +31,8 @@ build/
 # Gradio runtime/cache files
 .gradio/
 
-# Private inspection data — never commit
-data/raw_videos/*
-!data/raw_videos/.gitkeep
-
-data/raw_frames/*
-!data/raw_frames/.gitkeep
-
-data/processed_frames/*
-!data/processed_frames/.gitkeep
-
 data/segmented/*
 !data/segmented/.gitkeep
-
-data/annotations/*
-!data/annotations/.gitkeep
-
-data/datasets/*
-!data/datasets/.gitkeep
-
-data/manifests/*
-!data/manifests/.gitkeep
-
-data/reports/*
-!data/reports/.gitkeep
 
 # Model artifacts and derived private outputs
 artifacts/*
