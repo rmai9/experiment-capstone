@@ -64,9 +64,10 @@ missing. It does not create placeholder segmentation outputs.
 ## Coverboard selection
 
 SAM2 is a promptable segmentation model; it does not know that a particular
-object is a railway coverboard without a prompt. The current UI asks for a
-bounding box around the coverboard in the first extracted frame. Coordinates
-are normalized to the range `0` to `1`:
+object is a railway coverboard without a prompt. The UI first extracts the
+frames, displays the first extracted frame, and lets the user drag a bounding
+box around the coverboard. The selected coordinates are normalized to the
+range `0` to `1`:
 
 ```text
 x1 = left / frame_width       y1 = top / frame_height
@@ -77,11 +78,8 @@ The box must satisfy `x1 < x2` and `y1 < y2`. The pipeline converts the box to
 pixel coordinates, adds it as object `1` on frame `0`, and propagates it with
 SAM2 through the extracted frame sequence. This allows a coverboard to move
 from the right side of the track to the left side without reusing a fixed
-screen location.
-
-The prompt is currently entered manually; the video preview does not provide a
-click-and-drag box selector. Severe occlusion or tracking loss is reported in
-the manifest rather than repaired automatically.
+screen location. Severe occlusion or tracking loss is reported in the
+manifest rather than repaired automatically.
 
 ## Outputs
 
