@@ -31,31 +31,13 @@ build/
 # Gradio runtime/cache files
 .gradio/
 
-# Private inspection data — never commit
-data/raw_videos/*
-!data/raw_videos/.gitkeep
-
-data/raw_frames/*
-!data/raw_frames/.gitkeep
-
-data/processed_frames/*
-!data/processed_frames/.gitkeep
-
-data/annotations/*
-!data/annotations/.gitkeep
-
-data/datasets/*
-!data/datasets/.gitkeep
-
-data/manifests/*
-!data/manifests/.gitkeep
-
-data/reports/*
-!data/reports/.gitkeep
+data/segmented/*
+!data/segmented/.gitkeep
 
 # Model artifacts and derived private outputs
 artifacts/*
 !artifacts/.gitkeep
+models/
 
 # Common ML experiment outputs
 runs/
@@ -63,3 +45,11 @@ wandb/
 mlruns/
 lightning_logs/
 tensorboard/
+
+# Generated extractor output
+data/frames/*
+artifacts/manifests/*
+
+# Preserve empty directories after clone
+!data/frames/.gitkeep
+!artifacts/manifests/.gitkeep
